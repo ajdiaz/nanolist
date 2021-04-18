@@ -38,6 +38,7 @@ type List struct {
 	Address         string   `ini:"address"`
 	Hidden          bool     `ini:"hidden"`
 	SubscribersOnly bool     `ini:"subscribers_only"`
+	Restricted      bool     `ini:"restricted"`
 	Posters         []string `ini:"posters,omitempty"`
 	Bcc             []string `ini:"bcc,omitempty"`
 }
@@ -220,6 +221,15 @@ func handleSubscribe(msg *Message) {
 		os.Exit(0)
 	}
 
+	if list.Restricted {
+		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
+		reply.Body = fmt.Sprintf("Unable to subscribe to %s - this is a restricted mailing list.\r\n", listId)
+		reply.Send([]string{msg.From})
+		log.Printf("INVALID_SUBSCRIPTION_RESTRICTED User=%q List=%q\n", msg.From, listId)
+		os.Exit(0)
+	}
+
 	// Switch to id - in case we were passed address
 	listId = list.Id
 
@@ -247,6 +257,15 @@ func handleUnsubscribe(msg *Message) {
 		reply.Body = fmt.Sprintf("Unable to unsubscribe from %s  - it is not a valid mailing list.\r\n", listId)
 		reply.Send([]string{msg.From})
 		log.Printf("INVALID_UNSUBSCRIPTION_REQUEST User=%q List=%q\n", msg.From, listId)
+		os.Exit(0)
+	}
+
+	if list.Restricted {
+		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
+		reply.Body = fmt.Sprintf("Unable to ubsubscribe to %s - this is a restricted mailing list.\r\n", listId)
+		reply.Send([]string{msg.From})
+		log.Printf("INVALID_UNSUBSCRIPTION_RESTRICTED User=%q List=%q\n", msg.From, listId)
 		os.Exit(0)
 	}
 
