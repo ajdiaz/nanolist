@@ -214,6 +214,7 @@ func handleSubscribe(msg *Message) {
 
 	if list == nil {
 		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
 		reply.Body = fmt.Sprintf("Unable to subscribe to %s  - it is not a valid mailing list.\r\n", listId)
 		reply.Send([]string{msg.From})
 		log.Printf("INVALID_SUBSCRIPTION_REQUEST User=%q List=%q\n", msg.From, listId)
@@ -225,6 +226,7 @@ func handleSubscribe(msg *Message) {
 
 	if isSubscribed(msg.From, listId) {
 		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
 		reply.Body = fmt.Sprintf("You are already subscribed to %s\r\n", listId)
 		reply.Send([]string{msg.From})
 		log.Printf("DUPLICATE_SUBSCRIPTION_REQUEST User=%q List=%q\n", msg.From, listId)
@@ -233,6 +235,7 @@ func handleSubscribe(msg *Message) {
 
 	addSubscription(msg.From, listId)
 	reply := msg.Reply()
+	reply.From = gConfig.CommandAddress
 	reply.Body = fmt.Sprintf("You are now subscribed to %s\r\n", listId)
 	reply.Send([]string{msg.From})
 }
@@ -244,6 +247,7 @@ func handleUnsubscribe(msg *Message) {
 
 	if list == nil {
 		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
 		reply.Body = fmt.Sprintf("Unable to unsubscribe from %s  - it is not a valid mailing list.\r\n", listId)
 		reply.Send([]string{msg.From})
 		log.Printf("INVALID_UNSUBSCRIPTION_REQUEST User=%q List=%q\n", msg.From, listId)
@@ -255,6 +259,7 @@ func handleUnsubscribe(msg *Message) {
 
 	if !isSubscribed(msg.From, listId) {
 		reply := msg.Reply()
+		reply.From = gConfig.CommandAddress
 		reply.Body = fmt.Sprintf("You aren't subscribed to %s\r\n", listId)
 		reply.Send([]string{msg.From})
 		log.Printf("DUPLICATE_UNSUBSCRIPTION_REQUEST User=%q List=%q\n", msg.From, listId)
@@ -263,6 +268,7 @@ func handleUnsubscribe(msg *Message) {
 
 	removeSubscription(msg.From, listId)
 	reply := msg.Reply()
+	reply.From = gConfig.CommandAddress
 	reply.Body = fmt.Sprintf("You are now unsubscribed from %s\r\n", listId)
 	reply.Send([]string{msg.From})
 }
