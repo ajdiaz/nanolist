@@ -374,10 +374,21 @@ func (msg *Message) String() string {
 
 func (msg *Message) Send(recipients []string) {
 
-	e, err_parse := mail.ParseAddress(msg.From)
+	var rcpt_to []string
+	fr, err_parse := mail.ParseAddress(msg.From)
 	if err_parse != nil {
-		log.Printf("ERROR_PARSING Error=%s\n", err_parse)
+		log.Printf("ERROR_PARSING Error=%s Address=%s\n", err_parse, msg.From)
 		os.Exit(0)
+	}
+
+	for _, r := range recipients {
+		e, err_parse := mail.ParseAddress(r)
+		if err_parse != nil {
+			log.Printf("ERROR_PARSING Error=%s Address=%s\n", err_parse, r)
+			os.Exit(0)
+		}
+
+		rcpt_to = append(rcpt_to, e.Address)
 	}
 
 	if gConfig.Debug {
@@ -392,9 +403,9 @@ func (msg *Message) Send(recipients []string) {
 	}
 
 	auth := smtp.PlainAuth("", gConfig.SMTPUsername, gConfig.SMTPPassword, gConfig.SMTPHostname)
-	err := smtp.SendMail(gConfig.SMTPHostname+":"+gConfig.SMTPPort, auth, e.Address, recipients, []byte(msg.String()))
+	err := smtp.SendMail(gConfig.SMTPHostname+":"+gConfig.SMTPPort, auth, fr.Address, rcpt_to, []byte(msg.String()))
 	if err != nil {
-		log.Printf("ERROR_SENDING Error=%q\n", err.Error())
+		log.Printf("ERROR_SENDING Error=%q recipients=%s\n", err.Error(), strings.Join(rcpt_to, ", "))
 		os.Exit(0)
 	}
 }
@@ -692,7 +703,7 @@ func commandInfo() string {
 	return fmt.Sprintf("    help\r\n"+
 		"      Information about valid commands\r\n"+
 		"\r\n"+
-		"    list\r\n"+
+		"    lists\r\n"+
 		"      Retrieve a list of available mailing lists\r\n"+
 		"\r\n"+
 		"    subscribe <list-id>\r\n"+
